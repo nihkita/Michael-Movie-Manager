@@ -3,6 +3,8 @@ package io.github.michael_movie_manager.controllers;
 import io.github.michael_movie_manager.models.Movie;
 import io.github.michael_movie_manager.repositories.MovieRepository;
 
+import java.security.Principal;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,29 +24,34 @@ public class MovieManagerController {
     private MovieRepository movieRepository;
 
     @RequestMapping
-    public Iterable<Movie> getMovies() {
-        return movieRepository.findAll();
+    public Iterable<Movie> getMovies(Principal principal) {
+        return movieRepository.findAllByUsername(principal.getName());
     }
     
     @RequestMapping(value = "{id}")
-    public Movie getMovie(@PathVariable Long id) {
-        return movieRepository.findOne(id);
+    public Movie getMovie(@PathVariable Long id, Principal principal) {
+        return movieRepository.findOneByIdAndUsername(id, principal.getName());
     }
 
     @RequestMapping(value = "create", method = RequestMethod.POST)
-    public Movie createMovie(@Valid @RequestBody Movie movie) {
+    public Movie createMovie(@Valid @RequestBody Movie movie, Principal principal) {
+        movie.setUsername(principal.getName());
         return movieRepository.save(movie);
     }
 
     @RequestMapping(value = "update", method = RequestMethod.POST)
-    public Movie updateMovie(@Valid @RequestBody Movie movie) {
+    public Movie updateMovie(@Valid @RequestBody Movie movie, Principal principal) throws Exception {
+        Movie existingMovie = movieRepository.findOne(movie.getId());
+        if (!existingMovie.getUsername().equals(principal.getName())) {
+            throw new Exception("Cannot modify another user's movie");
+        }
         return movieRepository.save(movie);
     }
 
     @RequestMapping(value = "delete/{id}", method = RequestMethod.DELETE)
-    public void deleteMovie(@PathVariable Long id) throws Exception {
+    public void deleteMovie(@PathVariable Long id, Principal principal) throws Exception {
         if (id == null) throw new Exception("Id must not be null");
-        movieRepository.delete(id);
+        movieRepository.deleteByIdAndUsername(id, principal.getName());
     }
     
 }

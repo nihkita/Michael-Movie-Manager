@@ -37,6 +37,8 @@ public class Movie {
     @Min(1)
     @Max(5)
     private Integer rating = null;
+    
+    private String username;
 
     public long getId() {
         return id;
@@ -84,6 +86,14 @@ public class Movie {
 
     public void setRating(Integer rating) {
         this.rating = rating;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
 }
